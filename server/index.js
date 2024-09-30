@@ -4,12 +4,23 @@ const cors = require('cors');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const profileRoutes = require('./routes/profile'); // маршрут для профилей
+const morgan = require('morgan'); // Подключение morgan
+const logger = require('./logger'); // Подключение winston
 
 const app = express();
 
 // Middleware для работы с JSON и CORS
 app.use(express.json());
 app.use(cors());
+
+// Логирование запросов с помощью morgan
+app.use(morgan('dev')); // Для базового логирования запросов
+
+// Логирование запросов с помощью winston
+app.use((req, res, next) => {
+  logger.info(`${req.method} ${req.url}`);
+  next();
+});
 
 // Конфигурация MongoDB
 const mongoURI = 'mongodb://localhost:27017/business-card-app';
@@ -101,31 +112,14 @@ app.get('/protected', authenticateToken, (req, res) => {
 // Маршрут для профиля
 app.use('/profile', profileRoutes);
 
+// Тестовый маршрут для проверки работы сервера
+app.get('/', (req, res) => {
+  logger.info('Главная страница запрошена');
+  res.send('Welcome to Business Card App');
+});
+
 // Запуск сервера
 const PORT = 5001;
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
 });
-
-// Тестовый маршрут для проверки работы сервера
-app.get('/', (req, res) => {
-  res.send('Welcome to Business Card App');
-});
-const morgan = require('morgan');
-
-// Логирование запросов с помощью morgan
-app.use(morgan('dev')); // Для базового логирования запросов
-const logger = require('./logger');
-
-app.use((req, res, next) => {
-  logger.info(`${req.method} ${req.url}`);
-  next();
-});
-
-// Пример использования winston в маршрутах
-app.get('/', (req, res) => {
-  logger.info('Главная страница запрошена');
-  res.send('Welcome to Business Card App');
-});
-const morgan = require('morgan');
-app.use(morgan('dev')); // режим логирования для разработки
